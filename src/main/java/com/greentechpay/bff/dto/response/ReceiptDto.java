@@ -9,7 +9,7 @@ import java.sql.Timestamp;
 
 @Data
 @Builder
-public class ResponseReceiptDto {
+public class ReceiptDto {
     private BigDecimal amount;
     private Timestamp paymentDate;
     private String senderRequestId;

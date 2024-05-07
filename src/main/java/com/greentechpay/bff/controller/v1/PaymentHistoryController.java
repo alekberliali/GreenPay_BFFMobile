@@ -2,6 +2,7 @@ package com.greentechpay.bff.controller.v1;
 
 import com.greentechpay.bff.dto.request.PageRequestDto;
 import com.greentechpay.bff.dto.response.PageResponse;
+import com.greentechpay.bff.dto.response.ReceiptDto;
 import com.greentechpay.bff.dto.response.ResponsePaymentHistoryDto;
 import com.greentechpay.bff.service.PaymentHistoryService;
 import jakarta.validation.Valid;
@@ -24,11 +25,16 @@ public class PaymentHistoryController {
         return ResponseEntity.ok(paymentHistoryService.getAllByPage(id, pageRequestDto));
     }
 
-/*    @GetMapping("/{id}")
-    public ResponseEntity<ResponseReceiptDto> getById(@PathVariable String id) {
-        return ResponseEntity.ok(paymentHistoryService.getById(id));
+   @GetMapping("/sender-request-id/{id}")
+    public ResponseEntity<ReceiptDto> getSenderRequestId(@PathVariable String id) {
+        return ResponseEntity.ok(paymentHistoryService.getBySenderRequestId(id));
     }
 
+    @GetMapping("/receipt-id/{id}")
+    public ResponseEntity<ReceiptDto> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(paymentHistoryService.getById(id));
+    }
+/*
     @PostMapping("/statistics")
     public ResponseEntity<Map<String, BigDecimal>> getStatisticsByUserId(@Valid @RequestBody StatisticDto statisticDto) {
         return ResponseEntity.ok(paymentHistoryService.getStatisticsByUserId(statisticDto));

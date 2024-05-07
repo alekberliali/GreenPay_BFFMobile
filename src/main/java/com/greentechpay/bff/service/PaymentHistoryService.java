@@ -5,6 +5,7 @@ import com.greentechpay.bff.client.PaymentHistoryClient;
 import com.greentechpay.bff.dto.request.RequestPaymentHistoryDto;
 import com.greentechpay.bff.dto.request.PageRequestDto;
 import com.greentechpay.bff.dto.response.PageResponse;
+import com.greentechpay.bff.dto.response.ReceiptDto;
 import com.greentechpay.bff.dto.response.ResponsePaymentHistoryDto;
 import com.greentechpay.bff.mapper.PaymentHistoryMapper;
 import lombok.RequiredArgsConstructor;
@@ -42,40 +43,15 @@ public class PaymentHistoryService {
                 .build();
     }
 
-
-
-
-   /*    public ResponseReceiptDto getById(String id) {
-
-        PaymentHistory paymentHistory = paymentHistoryRepository.findById(id).orElseThrow(() -> new ReceiptNotFoundException("receipt could not found by id: " + id));
-        if (paymentHistory.getServiceId() != 0) {
-            AppService service = serviceService.getById(paymentHistory.getServiceId());
-            return ResponseReceiptDto.builder()
-                    .amount(paymentHistory.getAmount())
-                    .paymentDate(paymentHistory.getPaymentDate())
-                    .senderRequestId(paymentHistory.getSenderRequestId())
-                    .name(service.getName())
-                    .from(paymentHistory.getUser().getPhoneNumber())
-                    .to(paymentHistory.getToUser())
-                    .currency(paymentHistory.getCurrency())
-                    .type(paymentHistory.getTransferType())
-                    .status(paymentHistory.getPaymentStatus())
-                    .build();
-
-        } else {
-            return ResponseReceiptDto.builder()
-                    .amount(paymentHistory.getAmount())
-                    .paymentDate(paymentHistory.getPaymentDate())
-                    .senderRequestId(paymentHistory.getSenderRequestId())
-                    .name(paymentHistory.getTransferType().name())
-                    .from(paymentHistory.getUser().getPhoneNumber())
-                    .to(paymentHistory.getToUser())
-                    .currency(paymentHistory.getCurrency())
-                    .type(paymentHistory.getTransferType())
-                    .status(paymentHistory.getPaymentStatus())
-                    .build();
-        }
+    public ReceiptDto getBySenderRequestId(String senderRequestId) {
+        return paymentHistoryClient.getBySenderRequestId(senderRequestId).getBody();
     }
+
+    public ReceiptDto getById(Long id){
+        return paymentHistoryClient.getById(id).getBody();
+    }
+
+   /*
 
     @Transactional(readOnly = true)
     public Map<String, BigDecimal> getStatisticsByUserId(StatisticDto statisticDto) {
