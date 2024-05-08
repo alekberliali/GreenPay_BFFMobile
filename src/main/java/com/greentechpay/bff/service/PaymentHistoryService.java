@@ -1,6 +1,7 @@
 package com.greentechpay.bff.service;
 
 
+import com.greentechpay.bff.client.AuthClient;
 import com.greentechpay.bff.client.PaymentHistoryClient;
 import com.greentechpay.bff.dto.request.RequestPaymentHistoryDto;
 import com.greentechpay.bff.dto.request.PageRequestDto;
@@ -20,6 +21,7 @@ public class PaymentHistoryService {
 
     private final PaymentHistoryClient paymentHistoryClient;
     private final PaymentHistoryMapper paymentHistoryMapper;
+    private final AuthClient authClient;
 
 
     public PageResponse<Date, List<ResponsePaymentHistoryDto>> getAllByPage(String userId, PageRequestDto pageRequestDto) {
@@ -44,15 +46,14 @@ public class PaymentHistoryService {
     }
 
     public ReceiptDto getBySenderRequestId(String senderRequestId) {
-        return paymentHistoryClient.getBySenderRequestId(senderRequestId).getBody();
+        var response = paymentHistoryClient.getBySenderRequestId(senderRequestId).getBody();
+        String number = authClient.getNumberById(Objects.requireNonNull(response).getFrom());
+        response.setFrom(number);
+        return response;
     }
 
-    public ReceiptDto getById(Long id){
-        return paymentHistoryClient.getById(id).getBody();
-    }
 
    /*
-
     @Transactional(readOnly = true)
     public Map<String, BigDecimal> getStatisticsByUserId(StatisticDto statisticDto) {
         String userId = statisticDto.userId();

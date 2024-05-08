@@ -6,12 +6,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableFeignClients
-public class MsSearchApplication {
+public class BffMobileApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MsSearchApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(BffMobileApplication.class, args);
+    }
 
 
 }

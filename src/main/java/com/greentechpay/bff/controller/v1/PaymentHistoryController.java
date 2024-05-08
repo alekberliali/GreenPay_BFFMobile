@@ -30,10 +30,6 @@ public class PaymentHistoryController {
         return ResponseEntity.ok(paymentHistoryService.getBySenderRequestId(id));
     }
 
-    @GetMapping("/receipt-id/{id}")
-    public ResponseEntity<ReceiptDto> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(paymentHistoryService.getById(id));
-    }
 /*
     @PostMapping("/statistics")
     public ResponseEntity<Map<String, BigDecimal>> getStatisticsByUserId(@Valid @RequestBody StatisticDto statisticDto) {
