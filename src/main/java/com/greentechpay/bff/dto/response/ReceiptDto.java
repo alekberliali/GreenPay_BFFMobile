@@ -1,6 +1,8 @@
 package com.greentechpay.bff.dto.response;
 
 
+import com.greentechpay.bff.dto.Status;
+import com.greentechpay.bff.dto.TransferType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,6 +19,6 @@ public class ReceiptDto {
     private String from;
     private String to;
     private String currency;
-    private String type;
-    private Boolean status;
+    private TransferType type;
+    private Status status;
 }

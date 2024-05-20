@@ -1,10 +1,10 @@
 package com.greentechpay.bff.service;
 
-
 import com.greentechpay.bff.client.AuthClient;
 import com.greentechpay.bff.client.PaymentHistoryClient;
 import com.greentechpay.bff.dto.request.RequestPaymentHistoryDto;
 import com.greentechpay.bff.dto.request.PageRequestDto;
+import com.greentechpay.bff.dto.request.StatisticDto;
 import com.greentechpay.bff.dto.response.PageResponse;
 import com.greentechpay.bff.dto.response.ReceiptDto;
 import com.greentechpay.bff.dto.response.ResponsePaymentHistoryDto;
@@ -12,8 +12,13 @@ import com.greentechpay.bff.mapper.PaymentHistoryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
-import java.util.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -24,21 +29,25 @@ public class PaymentHistoryService {
     private final AuthClient authClient;
 
 
-    public PageResponse<Date, List<ResponsePaymentHistoryDto>> getAllByPage(String userId, PageRequestDto pageRequestDto) {
+    public PageResponse<LocalDate, List<ResponsePaymentHistoryDto>>
+    getAllByPage(String userId, Integer page, Integer size) {
+        PageRequestDto pageRequestDto = new PageRequestDto(page, size);
+        Map<LocalDate, List<ResponsePaymentHistoryDto>> map = new HashMap<>();
 
-        Map<Date, List<ResponsePaymentHistoryDto>> map = new HashMap<>();
-        var dates = Objects.requireNonNull(paymentHistoryClient.getUserHistoryByUserId(userId, pageRequestDto).getBody()).getContent().keySet();
-        var results = Objects.requireNonNull(paymentHistoryClient.getUserHistoryByUserId(userId, pageRequestDto).getBody()).getContent();
-        var pages = Objects.requireNonNull(paymentHistoryClient.getUserHistoryByUserId(userId, pageRequestDto).getBody()).getTotalPages();
-        var elements = Objects.requireNonNull(paymentHistoryClient.getUserHistoryByUserId(userId, pageRequestDto).getBody()).getTotalElements();
-        for (Date a : dates) {
+        var response = Objects.requireNonNull(paymentHistoryClient.getUserHistoryByUserId(userId, pageRequestDto).getBody());
+        var dates = response.getContent().keySet();
+        var results = response.getContent();
+        var pages = response.getTotalPages();
+        var elements = response.getTotalElements();
+
+        for (LocalDate a : dates) {
             List<ResponsePaymentHistoryDto> list = new ArrayList<>();
             for (RequestPaymentHistoryDto historyDto : results.get(a)) {
                 list.add(paymentHistoryMapper.requestToResponse(historyDto));
             }
             map.put(a, list);
         }
-        return PageResponse.<Date, List<ResponsePaymentHistoryDto>>builder()
+        return PageResponse.<LocalDate, List<ResponsePaymentHistoryDto>>builder()
                 .totalPages(pages)
                 .totalElements(elements)
                 .content(map)
@@ -46,37 +55,18 @@ public class PaymentHistoryService {
     }
 
     public ReceiptDto getBySenderRequestId(String senderRequestId) {
-        var response = paymentHistoryClient.getBySenderRequestId(senderRequestId).getBody();
-        String number = authClient.getNumberById(Objects.requireNonNull(response).getFrom());
-        response.setFrom(number);
-        return response;
+        var receipt = paymentHistoryClient.getBySenderRequestId(senderRequestId).getBody();
+        String phoneNumber = authClient.getNumberById(Objects.requireNonNull(receipt).getFrom());
+        receipt.setFrom(phoneNumber);
+        return receipt;
     }
 
+    public Map<String, BigDecimal> getStatisticsByUserId(String userId, LocalDate startDate, LocalDate endDate) {
+        StatisticDto statisticDto = new StatisticDto(userId, startDate, endDate);
+        return paymentHistoryClient.getStatisticsByUserId(statisticDto).getBody();
+    }
 
-   /*
-    @Transactional(readOnly = true)
-    public Map<String, BigDecimal> getStatisticsByUserId(StatisticDto statisticDto) {
-        String userId = statisticDto.userId();
-        if (userService.userExistById(userId)) {
-            List<PaymentHistory> paymentHistoryList = paymentHistoryRepository
-                    .findAllByUserIdAndDateBetween(statisticDto.userId(), statisticDto.startDate(), statisticDto.endDate());
-
-            Map<String, BigDecimal> categoryPayments = new HashMap<>();
-
-            for (PaymentHistory ph : paymentHistoryList) {
-                Integer serviceId = ph.getServiceId();
-                BigDecimal amount = ph.getAmount();
-                String categoryName = categoryService.getById(serviceService.getCategoryIdById(serviceId)).getName();
-
-                if (!categoryPayments.containsKey(categoryName)) {
-                    categoryPayments.put(categoryName, amount);
-                } else {
-                    BigDecimal total = categoryPayments.get(categoryName);
-                    total = total.add(ph.getAmount());
-                    categoryPayments.put(categoryName, total);
-                }
-            }
-            return categoryPayments;
-        } else throw new UserNotFoundException("user could not found by id: " + userId);
-    }*/
+    public ReceiptDto getById(Long id) {
+        return paymentHistoryClient.getById(id).getBody();
+    }
 }

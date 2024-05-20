@@ -2,6 +2,5 @@ package com.greentechpay.bff.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 
-public record PageRequestDto(@NotNull(message = "page can not be null") Integer page,
-                             @NotNull(message = "size can not be null") Integer size) {
+public record PageRequestDto(Integer page, Integer size) {
 }
