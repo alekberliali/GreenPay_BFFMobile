@@ -1,22 +1,29 @@
 package com.greentechpay.bff.dto.response;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.greentechpay.bff.dto.Status;
+import com.greentechpay.bff.dto.TransferType;
+import com.greentechpay.bff.dto.Currency;
 import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
 
 @Data
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ReceiptDto {
     private BigDecimal amount;
-    private Timestamp paymentDate;
+    private LocalDateTime paymentDate;
     private String senderRequestId;
-    private String name;
+    private String serviceName;
     private String from;
     private String to;
-    private String currency;
-    private String type;
-    private Boolean status;
+    private String field;
+    private Currency currency;
+    private TransferType type;
+    private Status status;
 }

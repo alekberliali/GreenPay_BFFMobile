@@ -7,8 +7,8 @@ import java.util.Map;
 
 @Data
 @Builder
-public class PageResponse<K,V> {
+public class PageResponse<T> {
     private Long totalElements;
     private Integer totalPages;
-    private Map<K,V> content;
+    private T content;
 }
