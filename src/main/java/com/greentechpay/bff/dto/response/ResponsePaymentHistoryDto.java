@@ -12,7 +12,7 @@ public class ResponsePaymentHistoryDto {
     private Long id;
     private String senderRequestId;
     private BigDecimal amount;
-    private String toUser;
+    private String requestField;
     private String serviceName;
     private TransferType transferType;
     private LocalDateTime paymentDate;

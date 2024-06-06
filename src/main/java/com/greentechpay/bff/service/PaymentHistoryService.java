@@ -2,9 +2,9 @@ package com.greentechpay.bff.service;
 
 import com.greentechpay.bff.client.AuthClient;
 import com.greentechpay.bff.client.PaymentHistoryClient;
-import com.greentechpay.bff.dto.request.RequestPaymentHistoryDto;
-import com.greentechpay.bff.dto.request.PageRequestDto;
-import com.greentechpay.bff.dto.request.StatisticDto;
+import com.greentechpay.bff.client.ServiceClient;
+import com.greentechpay.bff.dto.TransferType;
+import com.greentechpay.bff.dto.request.*;
 import com.greentechpay.bff.dto.response.PageResponse;
 import com.greentechpay.bff.dto.response.ReceiptDto;
 import com.greentechpay.bff.dto.response.ResponsePaymentHistoryDto;
@@ -14,11 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.ArrayList;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,30 +23,37 @@ public class PaymentHistoryService {
     private final PaymentHistoryClient paymentHistoryClient;
     private final PaymentHistoryMapper paymentHistoryMapper;
     private final AuthClient authClient;
+    private final ServiceClient serviceClient;
 
+    public PageResponse<Map<LocalDate, List<ResponsePaymentHistoryDto>>>
+    getAllByPage(Integer page, Integer size, String userId, LocalDate startDate, LocalDate endDate) {
 
-    public PageResponse<LocalDate, List<ResponsePaymentHistoryDto>>
-    getAllByPage(String userId, Integer page, Integer size) {
         PageRequestDto pageRequestDto = new PageRequestDto(page, size);
-        Map<LocalDate, List<ResponsePaymentHistoryDto>> map = new HashMap<>();
+        PaymentHistoryCriteria paymentHistoryCriteria = new PaymentHistoryCriteria(userId, startDate, endDate);
+        FilterDto<PaymentHistoryCriteria> filterDto = new FilterDto<>(pageRequestDto, paymentHistoryCriteria);
 
-        var response = Objects.requireNonNull(paymentHistoryClient.getUserHistoryByUserId(userId, pageRequestDto).getBody());
-        var dates = response.getContent().keySet();
+        var response = Objects.requireNonNull(paymentHistoryClient.getUserHistoryByUserId(filterDto).getBody());
         var results = response.getContent();
         var pages = response.getTotalPages();
         var elements = response.getTotalElements();
 
-        for (LocalDate a : dates) {
-            List<ResponsePaymentHistoryDto> list = new ArrayList<>();
-            for (RequestPaymentHistoryDto historyDto : results.get(a)) {
-                list.add(paymentHistoryMapper.requestToResponse(historyDto));
-            }
-            map.put(a, list);
+        Map<LocalDate, List<ResponsePaymentHistoryDto>> map = new HashMap<>();
+        for (RequestPaymentHistoryDto dto : results) {
+            LocalDate date = dto.getPaymentDate().toLocalDate();
+            List<ResponsePaymentHistoryDto> list = map.getOrDefault(date, new ArrayList<>());
+            var responseDto = paymentHistoryMapper.requestToResponse(dto);
+            responseDto.setServiceName(serviceClient.getNameById(dto.getServiceId()));
+            list.add(responseDto);
+            map.put(date, list);
         }
-        return PageResponse.<LocalDate, List<ResponsePaymentHistoryDto>>builder()
+
+        Map<LocalDate, List<ResponsePaymentHistoryDto>> sortedMap = new TreeMap<>(Collections.reverseOrder());
+        sortedMap.putAll(map);
+
+        return PageResponse.<Map<LocalDate, List<ResponsePaymentHistoryDto>>>builder()
                 .totalPages(pages)
                 .totalElements(elements)
-                .content(map)
+                .content(sortedMap)
                 .build();
     }
 
@@ -67,6 +70,33 @@ public class PaymentHistoryService {
     }
 
     public ReceiptDto getById(Long id) {
-        return paymentHistoryClient.getById(id).getBody();
+        var request = paymentHistoryClient.getById(id).getBody();
+        assert request != null;
+        if (request.getType().equals(TransferType.Payment)) {
+            return ReceiptDto.builder()
+                    .amount(request.getAmount())
+                    .serviceName(serviceClient.getNameById(request.getServiceId()))
+                    .senderRequestId(request.getSenderRequestId())
+                    .from(request.getFrom())
+                    .field(request.getField())
+                    .paymentDate(request.getPaymentDate())
+                    .currency(request.getCurrency())
+                    .type(request.getType())
+                    .status(request.getStatus())
+                    .build();
+
+        } else {
+            return ReceiptDto.builder()
+                    .amount(request.getAmount())
+                    .senderRequestId(request.getSenderRequestId())
+                    .from(request.getFrom())
+                    .to(authClient.getNumberById(request.getTo()))
+                    .field(request.getField())
+                    .paymentDate(request.getPaymentDate())
+                    .currency(request.getCurrency())
+                    .type(request.getType())
+                    .status(request.getStatus())
+                    .build();
+        }
     }
 }
