@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PaymentHistoryCriteria {
     private String userId;
+    private String senderIban;
     private LocalDate startDate;
     private LocalDate endDate;
 }

@@ -2,7 +2,7 @@ package com.greentechpay.bff.controller.v1;
 
 import com.greentechpay.bff.dto.response.PageResponse;
 import com.greentechpay.bff.dto.response.ReceiptDto;
-import com.greentechpay.bff.dto.response.ResponsePaymentHistoryDto;
+import com.greentechpay.bff.dto.response.PaymentHistoryDto;
 import com.greentechpay.bff.service.PaymentHistoryService;
 import io.micrometer.common.lang.Nullable;
 import jakarta.validation.constraints.Min;
@@ -28,16 +28,18 @@ import java.util.Map;
 @Validated
 public class PaymentHistoryController {
 
+    //TODO all history will convert to Iban
     private final PaymentHistoryService paymentHistoryService;
 
     @GetMapping("/page")
-    public ResponseEntity<PageResponse<Map<LocalDate, List<ResponsePaymentHistoryDto>>>>
+    public ResponseEntity<PageResponse<Map<LocalDate, List<PaymentHistoryDto>>>>
     getAllWithPageByUserId(@RequestParam @Min(value = 0, message = "pages size can not be less than 0") Integer page,
                            @RequestParam @Min(value = 0, message = "elements size can not be less than 0") Integer size,
-                           @RequestParam @NotBlank(message = "user id can not be empty") String userId,
+                           @RequestParam @NotBlank(message = "user id can not be null") String userId,
+                           @RequestParam @Nullable String iban,
                            @RequestParam @Nullable @Past(message = "date must be in past") LocalDate startDate,
                            @RequestParam @Nullable @Past(message = "date must be in past") LocalDate endDate) {
-        return ResponseEntity.ok(paymentHistoryService.getAllByPage(page, size, userId, startDate, endDate));
+        return ResponseEntity.ok(paymentHistoryService.getAllByPage(page, size,userId, iban, startDate, endDate));
     }
 
     @GetMapping("/sender-request-id/{id}")

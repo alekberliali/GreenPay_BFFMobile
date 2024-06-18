@@ -1,5 +1,4 @@
-package com.greentechpay.bff.dto.request;
-
+package com.greentechpay.bff.dto.response;
 
 import com.greentechpay.bff.dto.Status;
 import com.greentechpay.bff.dto.TransferType;
@@ -9,12 +8,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-public class RequestPaymentHistoryDto {
+public class PaymentHistoryDto {
     private Long id;
     private String senderRequestId;
     private BigDecimal amount;
     private String requestField;
-    private Integer serviceId;
+    private String serviceName;
     private TransferType transferType;
     private LocalDateTime paymentDate;
     private Status status;
