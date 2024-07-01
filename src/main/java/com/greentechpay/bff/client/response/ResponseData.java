@@ -6,5 +6,5 @@ import java.util.Map;
 
 @Data
 public class ResponseData {
-    private Map<Integer, String> names;
+    private Map<Integer, String> servicesName;
 }

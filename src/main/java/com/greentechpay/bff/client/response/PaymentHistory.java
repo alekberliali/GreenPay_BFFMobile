@@ -14,17 +14,15 @@ public class PaymentHistory {
     private Long id;
     private BigDecimal amount;
     private String userId;
-    private Integer vendorId;
     private String toUser;
     private String requestField;
+    private String categoryName;
     private Integer serviceId;
-    private Integer merchantId;
     private String senderRequestId;
     private String senderIban;
     private String receiverIban;
     private Currency currency;
     private TransferType transferType;
     private LocalDateTime paymentDate;
-    private String transactionId;
     private Status status;
 }

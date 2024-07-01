@@ -14,6 +14,7 @@ public class PaymentHistoryDto {
     private BigDecimal amount;
     private String requestField;
     private String serviceName;
+    private String categoryName;
     private TransferType transferType;
     private LocalDateTime paymentDate;
     private Status status;

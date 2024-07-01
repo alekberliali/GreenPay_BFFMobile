@@ -10,8 +10,6 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -20,6 +18,7 @@ public class ReceiptDto {
     private LocalDateTime paymentDate;
     private String senderRequestId;
     private String serviceName;
+    private String categoryName;
     private String from;
     private String to;
     private String field;

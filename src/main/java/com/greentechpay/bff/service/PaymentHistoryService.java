@@ -3,8 +3,7 @@ package com.greentechpay.bff.service;
 import com.greentechpay.bff.client.AuthClient;
 import com.greentechpay.bff.client.PaymentHistoryClient;
 import com.greentechpay.bff.client.ServiceClient;
-import com.greentechpay.bff.client.request.NameIdListDto;
-import com.greentechpay.bff.client.request.RequestType;
+import com.greentechpay.bff.client.request.RequestIdList;
 import com.greentechpay.bff.client.response.PaymentHistory;
 import com.greentechpay.bff.dto.TransferType;
 import com.greentechpay.bff.dto.request.*;
@@ -29,22 +28,25 @@ public class PaymentHistoryService {
     private final ServiceClient serviceClient;
 
 
-    private Map<Integer, String> getNamesFromServiceProvider(List<PaymentHistory> paymentHistoryList) {
-        List<Integer> requestIdList = requestIdList(paymentHistoryList).stream().toList();
-        return serviceClient.getNameById(new NameIdListDto(requestIdList, RequestType.Service)).getData().getNames();
-    }
-
-    private Set<Integer> requestIdList(List<PaymentHistory> paymentHistoryList) {
-        Set<Integer> list = new HashSet<>();
+    private Map<Integer, String> getServiceNames(String agentName, String agentPassword, String agentId,
+                                                 String accessToken, List<PaymentHistory> paymentHistoryList) {
+        Set<Integer> requestIdSet = new HashSet<>();
         for (var ph : paymentHistoryList) {
-            list.add(ph.getServiceId());
+            requestIdSet.add(ph.getServiceId());
         }
-
-        return list;
+        requestIdSet.remove(null);
+        if (requestIdSet.size() > 0) {
+            var idList = RequestIdList.builder()
+                    .serviceIds(requestIdSet.stream().toList())
+                    .build();
+            return serviceClient.getServiceNamesById(agentName, agentPassword, agentId, accessToken, idList)
+                    .getData().getServicesName();
+        } else return new HashMap<>();
     }
 
     public PageResponse<Map<LocalDate, List<PaymentHistoryDto>>>
-    getAllByPage(Integer page, Integer size, String userId, String senderIban, LocalDate startDate, LocalDate endDate) {
+    getAllByPage(String agentName, String agentPassword, String agentId, String accessToken, Integer page, Integer size,
+                 String userId, String senderIban, LocalDate startDate, LocalDate endDate) {
 
         PageRequestDto pageRequestDto = new PageRequestDto(page, size);
         PaymentHistoryCriteria paymentHistoryCriteria = new PaymentHistoryCriteria(userId, senderIban, startDate, endDate);
@@ -55,7 +57,8 @@ public class PaymentHistoryService {
         var pages = request.getTotalPages();
         var elements = request.getTotalElements();
 
-        Map<Integer, String> serviceMap = getNamesFromServiceProvider(request.getContent());
+        Map<Integer, String> serviceMap = getServiceNames(agentName, agentPassword, agentId, accessToken, request.getContent());
+        serviceMap.put(null,"");
         Map<LocalDate, List<PaymentHistoryDto>> map = new HashMap<>();
         for (PaymentHistory dto : results) {
             LocalDate date = dto.getPaymentDate().toLocalDate();
@@ -76,36 +79,40 @@ public class PaymentHistoryService {
                 .build();
     }
 
-    public ReceiptDto getBySenderRequestId(String senderRequestId) {
+   /* public ReceiptDto getBySenderRequestId(String senderRequestId) {
         var receipt = paymentHistoryClient.getBySenderRequestId(senderRequestId).getBody();
         String phoneNumber = authClient.getNumberById(Objects.requireNonNull(receipt).getFrom());
         receipt.setFrom(phoneNumber);
         return receipt;
-    }
+    }*/
 
     public Map<String, BigDecimal> getStatisticsByUserId(String userId, LocalDate startDate, LocalDate endDate) {
         StatisticDto statisticDto = new StatisticDto(userId, startDate, endDate);
         return paymentHistoryClient.getStatisticsByUserId(statisticDto).getBody();
     }
 
-    //TODO Currency will add
-    public ReceiptDto getById(Long id) {
+    //TODO CardToBalance
+    public ReceiptDto getById(String agentName, String agentPassword, String agentId, String accessToken, Long id) {
         var request = paymentHistoryClient.getById(id).getBody();
         assert request != null;
-        Map<Integer, String> serviceMap = getNamesFromServiceProvider(new ArrayList<>(request.getServiceId()));
+        List<PaymentHistory> paymentHistoryList = new ArrayList<>();
+        paymentHistoryList.add(request);
+        Map<Integer, String> serviceMap = getServiceNames(agentName, agentPassword, agentId, accessToken,
+                paymentHistoryList);
+        serviceMap.put(null,"");
         if (request.getTransferType().equals(TransferType.BillingPayment)) {
             return ReceiptDto.builder()
                     .amount(request.getAmount())
-                    .serviceName(getNamesFromServiceProvider(new ArrayList<>(request.getServiceId())).get(request.getServiceId()))
+                    .serviceName(serviceMap.get(request.getServiceId()))
                     .senderRequestId(request.getSenderRequestId())
                     .from(serviceMap.get(request.getServiceId()))
                     .field(request.getRequestField())
+                    .categoryName(request.getCategoryName())
                     .paymentDate(request.getPaymentDate())
                     .currency(request.getCurrency())
                     .type(request.getTransferType())
                     .status(request.getStatus())
                     .build();
-
         } else if (request.getTransferType().equals(TransferType.BalanceToBalance)) {
             return ReceiptDto.builder()
                     .amount(request.getAmount())
@@ -113,6 +120,7 @@ public class PaymentHistoryService {
                     .from(request.getSenderIban())
                     .to(request.getReceiverIban())
                     .field(request.getRequestField())
+                    .categoryName(request.getCategoryName())
                     .paymentDate(request.getPaymentDate())
                     .currency(request.getCurrency())
                     .type(request.getTransferType())
@@ -124,6 +132,7 @@ public class PaymentHistoryService {
                     .senderRequestId(request.getSenderRequestId())
                     .from(request.getSenderIban())
                     .field(request.getRequestField())
+                    .categoryName(request.getCategoryName())
                     .paymentDate(request.getPaymentDate())
                     .currency(request.getCurrency())
                     .type(request.getTransferType())
