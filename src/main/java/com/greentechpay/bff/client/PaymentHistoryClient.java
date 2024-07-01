@@ -1,5 +1,6 @@
 package com.greentechpay.bff.client;
 
+import com.greentechpay.bff.client.response.PaymentHistory;
 import com.greentechpay.bff.dto.request.*;
 import com.greentechpay.bff.dto.response.PageResponse;
 import com.greentechpay.bff.dto.response.ReceiptDto;
@@ -17,13 +18,13 @@ import java.util.Map;
 public interface PaymentHistoryClient {
 
     @PostMapping(value = "/payment-history/filter")
-    ResponseEntity<PageResponse<List<RequestPaymentHistoryDto>>> getUserHistoryByUserId(FilterDto<PaymentHistoryCriteria> filterDto);
+    ResponseEntity<PageResponse<List<PaymentHistory>>> getUserHistoryByUserId(FilterDto<PaymentHistoryCriteria> filterDto);
 
     @GetMapping(value = "/payment-history/sender-request-id/{senderRequestId}")
     ResponseEntity<ReceiptDto> getBySenderRequestId(@PathVariable String senderRequestId);
 
     @GetMapping("/payment-history/receipt-id/{id}")
-    ResponseEntity<Receipt> getById(@PathVariable Long id);
+    ResponseEntity<PaymentHistory> getById(@PathVariable Long id);
 
     @PostMapping("/payment-history/category-statistics")
     ResponseEntity<Map<String, BigDecimal>> getStatisticsByUserId(StatisticDto statisticDto);
