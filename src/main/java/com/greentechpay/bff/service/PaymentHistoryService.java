@@ -58,7 +58,7 @@ public class PaymentHistoryService {
         var elements = request.getTotalElements();
 
         Map<Integer, String> serviceMap = getServiceNames(agentName, agentPassword, agentId, accessToken, request.getContent());
-        serviceMap.put(null,"");
+        serviceMap.put(null, "");
         Map<LocalDate, List<PaymentHistoryDto>> map = new HashMap<>();
         for (PaymentHistory dto : results) {
             LocalDate date = dto.getPaymentDate().toLocalDate();
@@ -99,7 +99,7 @@ public class PaymentHistoryService {
         paymentHistoryList.add(request);
         Map<Integer, String> serviceMap = getServiceNames(agentName, agentPassword, agentId, accessToken,
                 paymentHistoryList);
-        serviceMap.put(null,"");
+        serviceMap.put(null, "");
         if (request.getTransferType().equals(TransferType.BillingPayment)) {
             return ReceiptDto.builder()
                     .amount(request.getAmount())
@@ -113,7 +113,8 @@ public class PaymentHistoryService {
                     .type(request.getTransferType())
                     .status(request.getStatus())
                     .build();
-        } else if (request.getTransferType().equals(TransferType.BalanceToBalance)) {
+        } else if (request.getTransferType().equals(TransferType.IbanToIban) ||
+                request.getTransferType().equals(TransferType.IbanToPhoneNumber)) {
             return ReceiptDto.builder()
                     .amount(request.getAmount())
                     .senderRequestId(request.getSenderRequestId())
