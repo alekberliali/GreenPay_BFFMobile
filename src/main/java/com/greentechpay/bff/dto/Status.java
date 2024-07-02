@@ -1,9 +1,10 @@
 package com.greentechpay.bff.dto;
 
-
 public enum Status {
     Created,
+    Fail,
     Success,
+    Pending,
     TransactinCreated,
     SendingToVendor,
     CreatedAtVendor,
