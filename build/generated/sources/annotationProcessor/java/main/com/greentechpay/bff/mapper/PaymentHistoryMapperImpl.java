@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-07-02T17:32:27+0400",
+    date = "2024-07-03T15:51:33+0400",
     comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-8.5.jar, environment: Java 18.0.2.1 (Oracle Corporation)"
 )
 @Component
@@ -28,7 +28,6 @@ public class PaymentHistoryMapperImpl implements PaymentHistoryMapper {
         paymentHistoryDto.setCategoryName( paymentHistory.getCategoryName() );
         paymentHistoryDto.setTransferType( paymentHistory.getTransferType() );
         paymentHistoryDto.setPaymentDate( paymentHistory.getPaymentDate() );
-        paymentHistoryDto.setStatus( paymentHistory.getStatus() );
 
         return paymentHistoryDto;
     }

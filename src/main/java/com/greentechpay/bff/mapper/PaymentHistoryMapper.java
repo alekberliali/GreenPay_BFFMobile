@@ -8,5 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface PaymentHistoryMapper {
     @Mapping(target = "serviceName", ignore = true)
+    @Mapping(target = "status", ignore = true)
     PaymentHistoryDto requestToResponse(PaymentHistory paymentHistory);
 }

@@ -7,5 +7,5 @@ public enum TransferType {
     CardToBalance,
     BillingPayment,
     Qr,
-    Nfc,
+    Nfc
 }
