@@ -1,10 +1,10 @@
 package com.greentechpay.bff.service;
 
-import com.greentechpay.bff.client.AuthClient;
 import com.greentechpay.bff.client.PaymentHistoryClient;
 import com.greentechpay.bff.client.ServiceClient;
 import com.greentechpay.bff.client.request.RequestIdList;
 import com.greentechpay.bff.client.response.PaymentHistory;
+import com.greentechpay.bff.dto.Status;
 import com.greentechpay.bff.dto.TransferType;
 import com.greentechpay.bff.dto.request.*;
 import com.greentechpay.bff.dto.response.PageResponse;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,9 +25,19 @@ public class PaymentHistoryService {
 
     private final PaymentHistoryClient paymentHistoryClient;
     private final PaymentHistoryMapper paymentHistoryMapper;
-    private final AuthClient authClient;
     private final ServiceClient serviceClient;
 
+    private Status getStatus(Status status) {
+        if (status.equals(Status.Success) || status.equals(Status.TransactionSuccessfully)) {
+            return Status.Success;
+        } else if (status.equals(Status.Pending) || status.equals(Status.TransactinCreated) ||
+                status.equals(Status.SendingToVendor) || status.equals(Status.CreatedAtVendor)
+                || status.equals(Status.RequestBeingProcessed) || status.equals(Status.TransactionProgress)) {
+            return Status.Pending;
+        } else {
+            return Status.Fail;
+        }
+    }
 
     private Map<Integer, String> getServiceNames(String agentName, String agentPassword, String agentId,
                                                  String accessToken, List<PaymentHistory> paymentHistoryList) {
@@ -54,16 +65,18 @@ public class PaymentHistoryService {
 
         var request = Objects.requireNonNull(paymentHistoryClient.getUserHistoryByUserId(filterDto).getBody());
         var results = request.getContent();
+        var filter = results.stream().filter(paymentHistory -> paymentHistory.getStatus() != Status.Created).toList();
         var pages = request.getTotalPages();
         var elements = request.getTotalElements();
 
         Map<Integer, String> serviceMap = getServiceNames(agentName, agentPassword, agentId, accessToken, request.getContent());
         serviceMap.put(null, "");
         Map<LocalDate, List<PaymentHistoryDto>> map = new HashMap<>();
-        for (PaymentHistory dto : results) {
+        for (PaymentHistory dto : filter) {
             LocalDate date = dto.getPaymentDate().toLocalDate();
             List<PaymentHistoryDto> list = map.getOrDefault(date, new ArrayList<>());
             var responseDto = paymentHistoryMapper.requestToResponse(dto);
+            responseDto.setStatus(getStatus(dto.getStatus()));
             responseDto.setServiceName(serviceMap.get(dto.getServiceId()));
             list.add(responseDto);
             map.put(date, list);
@@ -91,7 +104,6 @@ public class PaymentHistoryService {
         return paymentHistoryClient.getStatisticsByUserId(statisticDto).getBody();
     }
 
-    //TODO CardToBalance
     public ReceiptDto getById(String agentName, String agentPassword, String agentId, String accessToken, Long id) {
         var request = paymentHistoryClient.getById(id).getBody();
         assert request != null;
@@ -111,7 +123,7 @@ public class PaymentHistoryService {
                     .paymentDate(request.getPaymentDate())
                     .currency(request.getCurrency())
                     .type(request.getTransferType())
-                    .status(request.getStatus())
+                    .status(getStatus(request.getStatus()))
                     .build();
         } else if (request.getTransferType().equals(TransferType.IbanToIban) ||
                 request.getTransferType().equals(TransferType.IbanToPhoneNumber)) {
@@ -125,7 +137,7 @@ public class PaymentHistoryService {
                     .paymentDate(request.getPaymentDate())
                     .currency(request.getCurrency())
                     .type(request.getTransferType())
-                    .status(request.getStatus())
+                    .status(getStatus(request.getStatus()))
                     .build();
         } else if (request.getTransferType().equals(TransferType.BalanceToCard)) {
             return ReceiptDto.builder()
@@ -137,7 +149,18 @@ public class PaymentHistoryService {
                     .paymentDate(request.getPaymentDate())
                     .currency(request.getCurrency())
                     .type(request.getTransferType())
-                    .status(request.getStatus())
+                    .status(getStatus(request.getStatus()))
+                    .build();
+        } else if (request.getTransferType().equals(TransferType.CardToBalance)) {
+            return ReceiptDto.builder()
+                    .amount(request.getAmount())
+                    .senderRequestId(request.getSenderRequestId())
+                    .field(request.getRequestField())
+                    .categoryName(request.getCategoryName())
+                    .paymentDate(request.getPaymentDate())
+                    .currency(request.getCurrency())
+                    .type(request.getTransferType())
+                    .status(getStatus(request.getStatus()))
                     .build();
         } else {
             return null;
