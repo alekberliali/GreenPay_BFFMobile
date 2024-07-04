@@ -57,9 +57,9 @@ public class PaymentHistoryController {
 
     @GetMapping("/statistics")
     public ResponseEntity<Map<String, BigDecimal>>
-    getStatisticsByUserId(@RequestParam @NotBlank(message = "user id can not be empty") String userId,
+    getStatisticsByUserId(@RequestParam @NotBlank(message = "iban can not be empty") String iban,
                           @RequestParam @Nullable @Past(message = "date must be a past date") LocalDate startDate,
                           @RequestParam @Nullable @Past(message = "date must be a past date") LocalDate endDate) {
-        return ResponseEntity.ok(paymentHistoryService.getStatisticsByUserId(userId, startDate, endDate));
+        return ResponseEntity.ok(paymentHistoryService.getStatisticsByUserId(iban, startDate, endDate));
     }
 }

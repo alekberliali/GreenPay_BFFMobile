@@ -99,8 +99,8 @@ public class PaymentHistoryService {
         return receipt;
     }*/
 
-    public Map<String, BigDecimal> getStatisticsByUserId(String userId, LocalDate startDate, LocalDate endDate) {
-        StatisticDto statisticDto = new StatisticDto(userId, startDate, endDate);
+    public Map<String, BigDecimal> getStatisticsByUserId(String iban, LocalDate startDate, LocalDate endDate) {
+        StatisticDto statisticDto = new StatisticDto(iban, startDate, endDate);
         return paymentHistoryClient.getStatisticsByUserId(statisticDto).getBody();
     }
 
