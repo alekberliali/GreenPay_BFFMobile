@@ -10,6 +10,7 @@ import com.greentechpay.bff.dto.request.*;
 import com.greentechpay.bff.dto.response.PageResponse;
 import com.greentechpay.bff.dto.response.ReceiptDto;
 import com.greentechpay.bff.dto.response.PaymentHistoryDto;
+import com.greentechpay.bff.dto.response.ResponseDto;
 import com.greentechpay.bff.mapper.PaymentHistoryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -99,9 +100,12 @@ public class PaymentHistoryService {
         return receipt;
     }*/
 
-    public Map<String, BigDecimal> getStatisticsByUserId(String iban, LocalDate startDate, LocalDate endDate) {
-        StatisticDto statisticDto = new StatisticDto(iban, startDate, endDate);
-        return paymentHistoryClient.getStatisticsByUserId(statisticDto).getBody();
+    public ResponseDto<Map<String, BigDecimal>> getStatisticsByUserId(String iban, LocalDate startDate, LocalDate endDate) {
+        StatisticDto statisticDto = new StatisticDto(iban, startDate, endDate); //TODO convert record to class
+
+        return ResponseDto.<Map<String, BigDecimal>>builder()
+                .data(paymentHistoryClient.getStatisticsByUserId(statisticDto).getBody())
+                .build();
     }
 
     public ReceiptDto getById(String agentName, String agentPassword, String agentId, String accessToken, Long id) {
