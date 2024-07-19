@@ -1,9 +1,6 @@
 package com.greentechpay.bff.controller.v1;
 
-import com.greentechpay.bff.dto.response.PageResponse;
-import com.greentechpay.bff.dto.response.ReceiptDto;
-import com.greentechpay.bff.dto.response.PaymentHistoryDto;
-import com.greentechpay.bff.dto.response.ResponseDto;
+import com.greentechpay.bff.dto.response.*;
 import com.greentechpay.bff.service.PaymentHistoryService;
 import io.micrometer.common.lang.Nullable;
 import jakarta.validation.constraints.Min;
@@ -56,11 +53,19 @@ public class PaymentHistoryController {
         return ResponseEntity.ok(paymentHistoryService.getById(agentName, agentPassword, agentId, accessToken, id));
     }
 
-    @GetMapping("/statistics")
+   /* @GetMapping("/statistics")
     public ResponseEntity<ResponseDto<Map<String, BigDecimal>>>
     getStatisticsByUserId(@RequestParam @NotBlank(message = "iban can not be empty") String iban,
                           @RequestParam @Nullable @Past(message = "date must be a past date") LocalDate startDate,
                           @RequestParam @Nullable @Past(message = "date must be a past date") LocalDate endDate) {
         return ResponseEntity.ok(paymentHistoryService.getStatisticsByUserId(iban, startDate, endDate));
+    }*/
+
+    @GetMapping("/statistics")
+    public ResponseEntity<ResponseDto<List<Statistic>>>
+    getStatisticsByUserId(@RequestParam @NotBlank(message = "iban can not be empty") String iban,
+                          @RequestParam @Nullable @Past(message = "date must be a past date") LocalDate startDate,
+                          @RequestParam @Nullable @Past(message = "date must be a past date") LocalDate endDate) {
+        return ResponseEntity.ok(paymentHistoryService.getStatistics(iban, startDate, endDate));
     }
 }
