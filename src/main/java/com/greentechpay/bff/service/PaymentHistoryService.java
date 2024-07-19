@@ -7,15 +7,13 @@ import com.greentechpay.bff.client.response.PaymentHistory;
 import com.greentechpay.bff.dto.Status;
 import com.greentechpay.bff.dto.TransferType;
 import com.greentechpay.bff.dto.request.*;
-import com.greentechpay.bff.dto.response.PageResponse;
-import com.greentechpay.bff.dto.response.ReceiptDto;
-import com.greentechpay.bff.dto.response.PaymentHistoryDto;
-import com.greentechpay.bff.dto.response.ResponseDto;
+import com.greentechpay.bff.dto.response.*;
 import com.greentechpay.bff.mapper.PaymentHistoryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -108,6 +106,34 @@ public class PaymentHistoryService {
                 .build();
     }
 
+    public ResponseDto<List<Statistic>> getStatistics(String iban, LocalDate startDate, LocalDate endDate) {
+        StatisticDto statisticDto = new StatisticDto(iban, startDate, endDate);
+
+        BigDecimal totalAmount = new BigDecimal(0);
+
+        List<Statistic> response = new ArrayList<>();
+        Map<String, BigDecimal> request = paymentHistoryClient.getStatisticsByUserId(statisticDto).getBody();
+        assert request != null;
+
+        for (String key : request.keySet()) {
+            totalAmount = totalAmount.add(request.get(key));
+        }
+
+        for (String key : request.keySet()) {
+            Statistic statistic = new Statistic();
+            statistic.setName(key);
+            statistic.setAmount(request.get(key));
+            BigDecimal percentage = statistic.getAmount().divide(totalAmount, 4, RoundingMode.HALF_EVEN)
+                    .multiply(BigDecimal.valueOf(100));
+            statistic.setPercentage(percentage.setScale(2, RoundingMode.HALF_EVEN));
+            response.add(statistic);
+        }
+        return ResponseDto.<List<Statistic>>builder()
+                .totalAmount(totalAmount)
+                .data(response)
+                .build();
+    }
+
     public ReceiptDto getById(String agentName, String agentPassword, String agentId, String accessToken, Long id) {
         var request = paymentHistoryClient.getById(id).getBody();
         assert request != null;
@@ -159,7 +185,8 @@ public class PaymentHistoryService {
             return ReceiptDto.builder()
                     .amount(request.getAmount())
                     .senderRequestId(request.getSenderRequestId())
-                    .field(request.getRequestField())
+                    .from("CARD")
+                    .to(request.getReceiverIban())
                     .categoryName(request.getCategoryName())
                     .paymentDate(request.getPaymentDate())
                     .currency(request.getCurrency())
