@@ -25,6 +25,7 @@ public class PaymentHistoryService {
     private final PaymentHistoryClient paymentHistoryClient;
     private final PaymentHistoryMapper paymentHistoryMapper;
     private final ServiceClient serviceClient;
+    private final WalletService walletService;
 
     private Status getStatus(Status status) {
         if (status.equals(Status.Success) || status.equals(Status.TransactionSuccessfully)) {
@@ -129,12 +130,13 @@ public class PaymentHistoryService {
             response.add(statistic);
         }
         return ResponseDto.<List<Statistic>>builder()
-                .totalAmount(totalAmount)
+                .totalAmount(totalAmount.doubleValue())
                 .data(response)
                 .build();
     }
 
-    public ReceiptDto getById(String agentName, String agentPassword, String agentId, String accessToken, Long id) {
+    public ReceiptDto getById(String agentName, String agentPassword, String agentId, String accessToken,
+                              String authorization, Long id) {
         var request = paymentHistoryClient.getById(id).getBody();
         assert request != null;
         List<PaymentHistory> paymentHistoryList = new ArrayList<>();
@@ -155,12 +157,28 @@ public class PaymentHistoryService {
                     .type(request.getTransferType())
                     .status(getStatus(request.getStatus()))
                     .build();
-        } else if (request.getTransferType().equals(TransferType.IbanToIban) ||
-                request.getTransferType().equals(TransferType.IbanToPhoneNumber)) {
+        } else if (request.getTransferType().equals(TransferType.IbanToIban)) {
             return ReceiptDto.builder()
                     .amount(request.getAmount())
                     .senderRequestId(request.getSenderRequestId())
                     .from(request.getSenderIban())
+                    .to(request.getReceiverIban())
+                    .field(request.getRequestField())
+                    .categoryName(request.getCategoryName())
+                    .paymentDate(request.getPaymentDate())
+                    .currency(request.getCurrency())
+                    .type(request.getTransferType())
+                    .status(getStatus(request.getStatus()))
+                    .build();
+        } else if (request.getTransferType().equals(TransferType.IbanToPhoneNumber)) {
+            var a = walletService.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
+                    authorization, request.getSenderIban());
+            var b = "sd";
+            return ReceiptDto.builder()
+                    .amount(request.getAmount())
+                    .senderRequestId(request.getSenderRequestId())
+                    .from(walletService.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
+                            authorization, request.getSenderIban()))
                     .to(request.getReceiverIban())
                     .field(request.getRequestField())
                     .categoryName(request.getCategoryName())
@@ -173,7 +191,8 @@ public class PaymentHistoryService {
             return ReceiptDto.builder()
                     .amount(request.getAmount())
                     .senderRequestId(request.getSenderRequestId())
-                    .from(request.getSenderIban())
+                    .from(walletService.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
+                            authorization, request.getSenderIban()))
                     .field(request.getRequestField())
                     .categoryName(request.getCategoryName())
                     .paymentDate(request.getPaymentDate())
@@ -186,7 +205,8 @@ public class PaymentHistoryService {
                     .amount(request.getAmount())
                     .senderRequestId(request.getSenderRequestId())
                     .from("CARD")
-                    .to(request.getReceiverIban())
+                    .to((walletService.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
+                            authorization, request.getReceiverIban())))
                     .categoryName(request.getCategoryName())
                     .paymentDate(request.getPaymentDate())
                     .currency(request.getCurrency())

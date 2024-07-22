@@ -49,8 +49,10 @@ public class PaymentHistoryController {
                                               @RequestHeader(value = "agent-password") String agentPassword,
                                               @RequestHeader(value = "agent-id") String agentId,
                                               @RequestHeader(value = "access-token") String accessToken,
+                                              @RequestHeader(value = "Authorization") String authorization,
                                               @PathVariable Long id) {
-        return ResponseEntity.ok(paymentHistoryService.getById(agentName, agentPassword, agentId, accessToken, id));
+        return ResponseEntity.ok(paymentHistoryService.getById(agentName, agentPassword, agentId, accessToken,
+                authorization, id));
     }
 
    /* @GetMapping("/statistics")
