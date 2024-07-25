@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +45,7 @@ public class PaymentHistoryService {
             requestIdSet.add(ph.getServiceId());
         }
         requestIdSet.remove(null);
-        if (requestIdSet.size() > 0) {
+        if (!requestIdSet.isEmpty()) {
             var idList = RequestIdList.builder()
                     .serviceIds(requestIdSet.stream().toList())
                     .build();
@@ -63,7 +62,7 @@ public class PaymentHistoryService {
         PaymentHistoryCriteria paymentHistoryCriteria = new PaymentHistoryCriteria(userId, senderIban, startDate, endDate);
         FilterDto<PaymentHistoryCriteria> filterDto = new FilterDto<>(pageRequestDto, paymentHistoryCriteria);
 
-        var request = Objects.requireNonNull(paymentHistoryClient.getUserHistoryByUserId(filterDto).getBody());
+        var request = Objects.requireNonNull(paymentHistoryClient.getUserHistoryByUserId(filterDto));
         var results = request.getContent();
         var filter = results.stream().filter(paymentHistory -> paymentHistory.getStatus() != Status.Created).toList();
         var pages = request.getTotalPages();
@@ -89,21 +88,6 @@ public class PaymentHistoryService {
                 .totalPages(pages)
                 .totalElements(elements)
                 .content(sortedMap)
-                .build();
-    }
-
-   /* public ReceiptDto getBySenderRequestId(String senderRequestId) {
-        var receipt = paymentHistoryClient.getBySenderRequestId(senderRequestId).getBody();
-        String phoneNumber = authClient.getNumberById(Objects.requireNonNull(receipt).getFrom());
-        receipt.setFrom(phoneNumber);
-        return receipt;
-    }*/
-
-    public ResponseDto<Map<String, BigDecimal>> getStatisticsByUserId(String iban, LocalDate startDate, LocalDate endDate) {
-        StatisticDto statisticDto = new StatisticDto(iban, startDate, endDate); //TODO convert record to class
-
-        return ResponseDto.<Map<String, BigDecimal>>builder()
-                .data(paymentHistoryClient.getStatisticsByUserId(statisticDto).getBody())
                 .build();
     }
 
@@ -137,7 +121,7 @@ public class PaymentHistoryService {
 
     public ReceiptDto getById(String agentName, String agentPassword, String agentId, String accessToken,
                               String authorization, Long id) {
-        var request = paymentHistoryClient.getById(id).getBody();
+        var request = paymentHistoryClient.getById(id, Long.valueOf(agentId));
         assert request != null;
         List<PaymentHistory> paymentHistoryList = new ArrayList<>();
         paymentHistoryList.add(request);
@@ -171,9 +155,6 @@ public class PaymentHistoryService {
                     .status(getStatus(request.getStatus()))
                     .build();
         } else if (request.getTransferType().equals(TransferType.IbanToPhoneNumber)) {
-            var a = walletService.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
-                    authorization, request.getSenderIban());
-            var b = "sd";
             return ReceiptDto.builder()
                     .amount(request.getAmount())
                     .senderRequestId(request.getSenderRequestId())
