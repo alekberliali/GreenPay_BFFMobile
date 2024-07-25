@@ -16,10 +16,7 @@ public class WalletService {
     protected String getPhoneNumberByIban(String agentName, String agentPassword, String agentId,
                                           String accessToken, String authorizationToken, String iban) {
 
-
-        BaseResponse<ResponseData> response= walletClient.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
-                authorizationToken, iban);
-
-        return response.getData().getPhoneNumber();
+        return walletClient.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
+                authorizationToken, iban).getData().getPhoneNumber();
     }
 }

@@ -33,8 +33,8 @@ public class PaymentHistoryController {
                            @RequestParam @Min(value = 0, message = "elements size can not be less than 0") Integer size,
                            @RequestParam @NotBlank(message = "user id can not be null") String userId,
                            @RequestParam @Nullable String iban,
-                           @RequestParam @Nullable @Past(message = "date must be in past") LocalDate startDate,
-                           @RequestParam @Nullable @Past(message = "date must be in past") LocalDate endDate) {
+                           @RequestParam @Nullable LocalDate startDate,
+                           @RequestParam @Nullable LocalDate endDate) {
         return ResponseEntity.ok(paymentHistoryService.getAllByPage(agentName, agentPassword, agentId, accessToken,
                 page, size, userId, iban, startDate, endDate));
     }
@@ -66,8 +66,8 @@ public class PaymentHistoryController {
     @GetMapping("/statistics")
     public ResponseEntity<ResponseDto<List<Statistic>>>
     getStatisticsByUserId(@RequestParam @NotBlank(message = "iban can not be empty") String iban,
-                          @RequestParam @Nullable @Past(message = "date must be a past date") LocalDate startDate,
-                          @RequestParam @Nullable @Past(message = "date must be a past date") LocalDate endDate) {
+                          @RequestParam @Nullable LocalDate startDate,
+                          @RequestParam @Nullable LocalDate endDate) {
         return ResponseEntity.ok(paymentHistoryService.getStatistics(iban, startDate, endDate));
     }
 }
