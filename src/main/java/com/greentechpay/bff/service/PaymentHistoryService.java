@@ -128,8 +128,11 @@ public class PaymentHistoryService {
         Map<Integer, String> serviceMap = getServiceNames(agentName, agentPassword, agentId, accessToken,
                 paymentHistoryList);
         serviceMap.put(null, "");
+        Map<String,String> senderIbanMap=walletService.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
+                authorization, request.getSenderIban());
         if (request.getTransferType().equals(TransferType.BillingPayment)) {
             return ReceiptDto.builder()
+                    .receiptId(request.getTransactionId().substring(0,8))
                     .amount(request.getAmount())
                     .serviceName(serviceMap.get(request.getServiceId()))
                     .senderRequestId(request.getSenderRequestId())
@@ -143,6 +146,7 @@ public class PaymentHistoryService {
                     .build();
         } else if (request.getTransferType().equals(TransferType.IbanToIban)) {
             return ReceiptDto.builder()
+                    .receiptId(request.getTransactionId().substring(0,8))
                     .amount(request.getAmount())
                     .senderRequestId(request.getSenderRequestId())
                     .from(request.getSenderIban())
@@ -156,10 +160,10 @@ public class PaymentHistoryService {
                     .build();
         } else if (request.getTransferType().equals(TransferType.IbanToPhoneNumber)) {
             return ReceiptDto.builder()
+                    .receiptId(request.getTransactionId().substring(0,8))
                     .amount(request.getAmount())
                     .senderRequestId(request.getSenderRequestId())
-                    .from(walletService.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
-                            authorization, request.getSenderIban()))
+                    .from(senderIbanMap.get(request.getSenderIban()))
                     .to(request.getReceiverIban())
                     .field(request.getRequestField())
                     .categoryName(request.getCategoryName())
@@ -170,10 +174,10 @@ public class PaymentHistoryService {
                     .build();
         } else if (request.getTransferType().equals(TransferType.BalanceToCard)) {
             return ReceiptDto.builder()
+                    .receiptId(request.getTransactionId().substring(0,8))
                     .amount(request.getAmount())
                     .senderRequestId(request.getSenderRequestId())
-                    .from(walletService.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
-                            authorization, request.getSenderIban()))
+                    .from(senderIbanMap.get(request.getSenderIban()))
                     .field(request.getRequestField())
                     .categoryName(request.getCategoryName())
                     .paymentDate(request.getPaymentDate())
@@ -183,11 +187,12 @@ public class PaymentHistoryService {
                     .build();
         } else if (request.getTransferType().equals(TransferType.CardToBalance)) {
             return ReceiptDto.builder()
+                    .receiptId(request.getTransactionId().substring(0,8))
                     .amount(request.getAmount())
                     .senderRequestId(request.getSenderRequestId())
                     .from("CARD")
-                    .to((walletService.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
-                            authorization, request.getReceiverIban())))
+                    .to(request.getReceiverIban())
+                    .field(senderIbanMap.get(request.getReceiverIban()))
                     .categoryName(request.getCategoryName())
                     .paymentDate(request.getPaymentDate())
                     .currency(request.getCurrency())
