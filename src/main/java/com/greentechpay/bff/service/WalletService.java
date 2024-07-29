@@ -8,15 +8,20 @@ import com.greentechpay.bff.client.response.ResponseData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class WalletService {
     private final WalletClient walletClient;
 
-    protected String getPhoneNumberByIban(String agentName, String agentPassword, String agentId,
-                                          String accessToken, String authorizationToken, String iban) {
-
+    protected Map<String, String> getPhoneNumberByIban(String agentName, String agentPassword, String agentId,
+                                       String accessToken, String authorizationToken, String iban) {
+        var request = Wallet.builder()
+                .iban(List.of(iban))
+                .build();
         return walletClient.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
-                authorizationToken, iban).getData().getPhoneNumber();
+                authorizationToken, request).getData().getIbanPhonePairs();
     }
 }

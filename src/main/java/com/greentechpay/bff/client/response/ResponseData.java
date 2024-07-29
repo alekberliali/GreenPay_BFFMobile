@@ -7,5 +7,5 @@ import java.util.Map;
 @Data
 public class ResponseData {
     private Map<Integer, String> servicesName;
-    private String phoneNumber;
+    private Map<String, String> ibanPhonePairs;
 }

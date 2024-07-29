@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ReceiptDto {
+    private String receiptId;
     private BigDecimal amount;
     private LocalDateTime paymentDate;
     private String senderRequestId;

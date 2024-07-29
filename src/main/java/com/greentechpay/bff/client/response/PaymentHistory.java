@@ -19,6 +19,7 @@ public class PaymentHistory {
     private String categoryName;
     private Integer serviceId;
     private String senderRequestId;
+    private String transactionId;
     private String senderIban;
     private String receiverIban;
     private Currency currency;
