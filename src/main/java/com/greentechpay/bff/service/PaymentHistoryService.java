@@ -128,8 +128,14 @@ public class PaymentHistoryService {
         Map<Integer, String> serviceMap = getServiceNames(agentName, agentPassword, agentId, accessToken,
                 paymentHistoryList);
         serviceMap.put(null, "");
+        String iban;
+        if (request.getSenderIban()!=null){
+            iban = request.getSenderIban();
+        }else {
+            iban= request.getReceiverIban();
+        }
         Map<String,String> senderIbanMap=walletService.getPhoneNumberByIban(agentName, agentPassword, agentId, accessToken,
-                authorization, request.getSenderIban());
+                authorization, iban);
         if (request.getTransferType().equals(TransferType.BillingPayment)) {
             return ReceiptDto.builder()
                     .receiptId(request.getTransactionId().substring(0,8))
@@ -192,7 +198,7 @@ public class PaymentHistoryService {
                     .senderRequestId(request.getSenderRequestId())
                     .from("CARD")
                     .to(request.getReceiverIban())
-                    .field(senderIbanMap.get(request.getReceiverIban()))
+                    .field(senderIbanMap.get(iban))
                     .categoryName(request.getCategoryName())
                     .paymentDate(request.getPaymentDate())
                     .currency(request.getCurrency())
